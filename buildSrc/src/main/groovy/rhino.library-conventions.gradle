@@ -4,6 +4,7 @@ plugins {
     id 'checkstyle'
     id 'jacoco'
     id 'net.ltgt.errorprone'
+    id 'biz.aQute.bnd.builder'
 }
 
 dependencies {
@@ -16,15 +17,23 @@ tasks.named('compileJava') {
     options.javaModuleVersion = provider { version }
 }
 
-tasks.withType(Jar).configureEach {
-    manifest {
-        attributes (
-            "Implementation-Version": project.version,
-            "Implementation-Title":  "Mozilla Rhino",
-            "Implementation-Vendor": "Mozilla Foundation",
-            "Implementation-URL": "http://github.com/mozilla/rhino",
-        )
-    }
+tasks.named(JavaPlugin.JAR_TASK_NAME) {
+// Common Bnd configuration
+//https://github.com/bndtools/bnd/tree/master/gradle-plugins
+	bundle {
+		bnd("""
+            Implementation-Version: ${project.version}
+            Implementation-Title:  Mozilla Rhino
+            Implementation-Vendor: Mozilla Foundation
+            Implementation-URL: http://github.com/mozilla/rhino
+            Bundle-SymbolicName: ${project.group}.${project.name}
+            Bundle-Version: ${project.version}
+            Export-Package: org.mozilla.javascript.*
+            Import-Package: *
+            -noextraheaders: true
+            -noimportjava: true
+        """)
+	}
 }
 
 tasks.withType(JavaCompile).configureEach {
